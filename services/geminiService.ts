@@ -155,7 +155,7 @@ const executeWithRetry = async <T>(action: () => Promise<T>): Promise<T> => {
 
 export const suggestShootingContexts = async (imageBase64: string): Promise<string[]> => {
   try {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const ai = new GoogleGenerativeAI(process.env.API_KEY);
     const imagePart = {
       inlineData: {
         mimeType: getMimeType(imageBase64),
@@ -167,8 +167,8 @@ export const suggestShootingContexts = async (imageBase64: string): Promise<stri
     Trả về kết quả TUYỆT ĐỐI chỉ là một JSON Array chứa các chuỗi string Tiếng Việt.
     Ví dụ: ["Studio phông nền màu be", "Đường phố Paris ngày nắng", "Nội thất gỗ ấm cúng"]`;
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+    const model = ai.getGenerativeModel({ model: "gemini-2.5-flash" });
+const result = await model.generateContent([...]);
       contents: {
         parts: [imagePart, { text: prompt }],
       },
