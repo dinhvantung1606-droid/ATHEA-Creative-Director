@@ -189,7 +189,7 @@ const result = await model.generateContent([...]);
 
 export const suggestModelStyles = async (imageBase64: string): Promise<string[]> => {
   try {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const ai = new GoogleGenerativeAI(process.env.API_KEY);
     const imagePart = {
       inlineData: {
         mimeType: getMimeType(imageBase64),
@@ -229,7 +229,7 @@ export const generateShootingPlan = async (
   faceImageBase64?: string | null
 ): Promise<string> => {
   try {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const ai = new GoogleGenerativeAI(process.env.API_KEY);
     
     // Construct parts array
     const parts: any[] = [];
@@ -297,7 +297,7 @@ export const generatePosePrompt = async (
     userContext: string
 ): Promise<string> => {
     try {
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+       const ai = new GoogleGenerativeAI(process.env.API_KEY);
         const imagePart = {
             inlineData: {
                 mimeType: getMimeType(imageBase64),
