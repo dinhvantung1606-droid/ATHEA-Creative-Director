@@ -1,5 +1,5 @@
 
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { ImageSize } from "../types";
 
 const SYSTEM_INSTRUCTION_TEXT = `VAI TRÒ (ROLE):
