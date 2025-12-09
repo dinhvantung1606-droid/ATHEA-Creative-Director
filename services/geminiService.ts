@@ -201,7 +201,7 @@ export const suggestModelStyles = async (imageBase64: string): Promise<string[]>
     Trả về kết quả TUYỆT ĐỐI chỉ là một JSON Array chứa các chuỗi string Tiếng Việt.
     Ví dụ: ["Người mẫu Việt Nam, nét đẹp thanh lịch, hiện đại", "Người mẫu Hàn Quốc, da trắng sáng, phong cách ngọt ngào", "Người mẫu Trung Quốc, thần thái sắc sảo, high-fashion", "Người mẫu lai Tây, vẻ đẹp quyến rũ"]`;
 
-    const response = await ai.models.generateContent({
+    const response = await model.generateContent({
       model: 'gemini-2.5-flash',
       contents: {
         parts: [imagePart, { text: prompt }],
@@ -269,7 +269,7 @@ export const generateShootingPlan = async (
     const promptText = `Hãy phân tích các hình ảnh được cung cấp và lập kế hoạch chụp ảnh với:\nBối cảnh: ${context}\nNgười mẫu: ${modelStyle}`;
     parts.push({ text: promptText });
 
-    const response = await ai.models.generateContent({
+    const response = await model.generateContent({
       model: 'gemini-2.5-flash',
       contents: {
         parts: parts,
@@ -323,7 +323,7 @@ export const generatePosePrompt = async (
         ${POSE_PROMPT_EXAMPLE}
         `;
 
-        const response = await ai.models.generateContent({
+        const response = await model.generateContent({
             model: 'gemini-2.5-flash',
             contents: {
                 parts: [imagePart, { text: prompt }],
@@ -383,34 +383,32 @@ export const generateImageFromJsonPrompt = async (
     `;
 
     // 4. Call API with Retry Logic
-    return executeWithRetry(async () => {
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-        const response = await ai.models.generateContent({
-            model: 'gemini-3-pro-image-preview',
-            contents: {
-                parts: [
-                    { text: constructedPrompt },
-                    {
-                        inlineData: {
-                            mimeType: getMimeType(imageBase64),
-                            data: stripBase64Prefix(imageBase64),
-                        }
-                    }
-                ],
-            },
-            config: {
-                imageConfig: {
-                    aspectRatio: "3:4",
-                    imageSize: size,
-                },
-            },
-        });
+return executeWithRetry(async () => {
+    const ai = new GoogleGenerativeAI(process.env.API_KEY);
+    const model = ai.getGenerativeModel({ model: "gemini-3-pro-image-preview" });
 
-        for (const part of response.candidates?.[0]?.content?.parts || []) {
-            if (part.inlineData) {
-                return `data:image/png;base64,${part.inlineData.data}`;
+    const result = await model.generateContent([
+        { text: constructedPrompt },
+        {
+            inlineData: {
+                mimeType: getMimeType(imageBase64),
+                data: stripBase64Prefix(imageBase64),
             }
         }
-        throw new Error("Không có ảnh nào được tạo ra.");
+    ], {
+        imageConfig: {
+            aspectRatio: "3:4",
+            imageSize: size,
+        }
     });
-};
+
+    // Extract base64 output
+    const outputs = result.response.candidates?.[0]?.content?.parts;
+    const imagePart = outputs?.find((p: any) => p.inlineData);
+
+    if (imagePart) {
+        return `data:image/png;base64,${imagePart.inlineData.data}`;
+    }
+
+    throw new Error("Không có ảnh nào được tạo ra.");
+});
